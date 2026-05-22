@@ -1,0 +1,11 @@
+model Product {
+    id  String  @id @default(uuid())
+    name    String
+    description String?
+    price   Float
+    stock   Int
+    image_url   String[]
+    size    Float[]
+    color   String[]
+    createdAt   DateTime    @default(now())
+}
