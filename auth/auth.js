@@ -1,12 +1,14 @@
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+import ApiError from "../utils/apiError.js";
+import { prisma } from "../prisma/prisma.client.js";
 
 const authentication = async (req, res, next) => {
-	const token = req.cookie.token;
+	const token = req.cookies.token;
 
 	try {
-		if (token.length <= 0) {
-			res.status(403).json({ message: "not authenticated" });
+		if (!token) {
+			throw new ApiError("authentication needed", 403);
 		}
 
 		const payload = jwt.verify(token, process.env.JWT_SECRET);
@@ -19,13 +21,15 @@ const authentication = async (req, res, next) => {
 		});
 
 		if (!user) {
-			res.status(404).json({ message: "not authenticated" });
+			throw new ApiError("authentication fail", 403);
 		}
 
 		req.userId = userId;
 
 		next();
 	} catch (err) {
-		res.status(err.statusCode).json({ message: err.message });
+		next(err);
 	}
 };
+
+export { authentication };
