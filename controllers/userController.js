@@ -8,14 +8,21 @@ const salt = await bcrypt.genSalt(10);
 // register user
 const register = async (req, res, next) => {
 	let { email, password, username } = req.body;
-    
-	if (!email || !password || username) {
-        throw new ApiError("All inputs are required!", 403);
+
+	if (!email || !password || !username) {
+		throw new ApiError("All inputs are required!", 403);
 	}
-    
-    email = email.trim().toLowerCase();
-    password = password.trim();
-    username = username.trim().toLowerCase();
+
+	email = email.trim().toLowerCase();
+	password = password.trim();
+	username = username.trim().toLowerCase();
+
+	if (password.length < 8) {
+		throw new ApiError(
+			"Password cannot be less than 8 characters",
+			403,
+		);
+	}
 
 	const existingEmail = await prisma.user.findUnique({
 		where: { email },
@@ -25,15 +32,15 @@ const register = async (req, res, next) => {
 		where: { username },
 	});
 
+	if (existingEmail) {
+		throw new ApiError("email has been used", 403);
+	}
+
+	if (existingUsername) {
+		throw new ApiError("username has been used", 403);
+	}
+
 	try {
-		if (existingEmail) {
-			throw new ApiError("email has been used", 403);
-		}
-
-		if (existingUsername) {
-			throw new ApiError("username has been used", 403);
-		}
-
 		const hashPassword = await bcrypt.hash(password, salt);
 
 		const user = await prisma.user.create({
@@ -75,15 +82,15 @@ const login = async (req, res, next) => {
 		where: { email },
 	});
 
+	if (!user) {
+		throw new ApiError("user not found", 404);
+	}
+
+	if (!password) {
+		throw new ApiError("no password", 403);
+	}
+    
 	try {
-		if (!user) {
-			throw new ApiError("user not found", 404);
-		}
-
-		if (!password) {
-			throw new ApiError("no password", 403);
-		}
-
 		const verifyPassword = await bcrypt.compare(
 			password,
 			user.password,
