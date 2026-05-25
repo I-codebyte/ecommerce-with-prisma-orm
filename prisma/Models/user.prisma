@@ -5,6 +5,7 @@ model User {
     username String @unique
     role Role   @default(customer)
     order   Order[]
+    product Product[]
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }

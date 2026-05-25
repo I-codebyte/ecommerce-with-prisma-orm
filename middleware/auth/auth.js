@@ -32,4 +32,23 @@ const authentication = async (req, res, next) => {
 	}
 };
 
-export { authentication };
+const authorization = async (req, res, next) => {
+	try {
+		const userId = req.userId;
+
+		const user = await prisma.user.findUnique({
+			where: { id: userId },
+			omit: { password: true },
+		});
+
+		if (user.role !== "admin") {
+			throw new ApiError("Unauthorized", 403);
+		}
+
+		next();
+	} catch (err) {
+		next(err);
+	}
+};
+
+export { authentication, authorization };

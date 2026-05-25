@@ -9,6 +9,13 @@ const salt = await bcrypt.genSalt(10);
 const register = async (req, res, next) => {
 	let { email, password, username } = req.body;
 
+	const token = req.cookies.token;
+
+	// if user is logged in redirect to home
+	if (token) {
+		res.redirect("/api/v1/users/profile");
+	}
+
 	if (!email || !password || !username) {
 		throw new ApiError("All inputs are required!", 403);
 	}
@@ -89,7 +96,7 @@ const login = async (req, res, next) => {
 	if (!password) {
 		throw new ApiError("no password", 403);
 	}
-    
+
 	try {
 		const verifyPassword = await bcrypt.compare(
 			password,

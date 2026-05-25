@@ -3,9 +3,9 @@ import "dotenv/config";
 import cookieParser from "cookie-parser";
 import { prisma } from "./prisma/prisma.client.js";
 import userRouter from "./routes/userRoute.js";
+import productRouter from "./routes/productRoute.js";
 
 const app = express();
-
 
 app.use(cookieParser());
 app.use(express.json());
@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 
 //routes
 app.use("/api/v1", userRouter);
+app.use("/api/v1", productRouter);
 
 const port = process.env.PORT || 5000;
 
