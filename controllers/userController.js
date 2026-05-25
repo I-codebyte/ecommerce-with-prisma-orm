@@ -5,8 +5,17 @@ import ApiError from "../utils/apiError.js";
 
 const salt = await bcrypt.genSalt(10);
 
+// register user
 const register = async (req, res, next) => {
-	const { email, password, username } = req.body;
+	let { email, password, username } = req.body;
+    
+	if (!email || !password || username) {
+        throw new ApiError("All inputs are required!", 403);
+	}
+    
+    email = email.trim().toLowerCase();
+    password = password.trim();
+    username = username.trim().toLowerCase();
 
 	const existingEmail = await prisma.user.findUnique({
 		where: { email },
@@ -42,12 +51,24 @@ const register = async (req, res, next) => {
 	}
 };
 
+// login
 const login = async (req, res, next) => {
-	const { email, password } = req.body;
+	let { email, password } = req.body;
+
+	email = email.trim().toLowerCase();
+
 	const token = req.cookies.token;
 
 	if (token) {
 		throw new ApiError("you're logged in", 304);
+	}
+
+	if (!email) {
+		throw new ApiError("Email field cannot be empty", 403);
+	}
+
+	if (!password) {
+		throw new ApiError("Password field cannot be empty", 403);
 	}
 
 	const user = await prisma.user.findUnique({
@@ -84,6 +105,7 @@ const login = async (req, res, next) => {
 	}
 };
 
+// logout
 const logout = async (req, res, next) => {
 	res.clearCookie("token")
 		.status(200)
@@ -105,9 +127,15 @@ const fetchUser = async (req, res, next) => {
 	}
 };
 
+// update user
 const updateUser = async (req, res, next) => {
-	const { email, username, oldPassword, newPassword } = req.body;
+	let { email, username, oldPassword, newPassword } = req.body;
+
+	email = email.trim().toLowerCase();
+	username = username.trim().toLowerCase();
+
 	const userId = req.userId;
+
 	try {
 		const user = await prisma.user.findUnique({
 			where: { id: userId },

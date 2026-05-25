@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import "dotenv/config";
-import ApiError from "../utils/apiError.js";
-import { prisma } from "../prisma/prisma.client.js";
+import ApiError from "../../utils/apiError.js";
+import { prisma } from "../../prisma/prisma.client.js";
 
 const authentication = async (req, res, next) => {
 	const token = req.cookies.token;
