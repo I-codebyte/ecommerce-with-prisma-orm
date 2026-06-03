@@ -1,9 +1,14 @@
 model Order {
     id  String  @id @default(uuid())
-    user    User    @relation(fields: [userId], references: [id])
-    userId  String
+    user    User    @relation(fields: [user_id], references: [id])
+    user_id  String
+    orderItems  OrderItem[]
     total_amount    Float
-    status  Status
+    status  Status  @default(pending)
+    address_id  String[]
+    sub_total    Float
+    shipping_fee    Float
+    total   Float
     createdAt   DateTime    @default(now())
 }
 

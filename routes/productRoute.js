@@ -14,6 +14,6 @@ router.get("/products", fetchAllProduct);
 router.post("/products", authentication, createProduct);
 router.get("/products/:id", fetchProductById);
 router.put("/products/:id", authentication, updateProduct);
-router.delete("/products/:id",authorization, deleteProduct)
+router.delete("/products/:id", authentication, deleteProduct);
 
 export default router;

@@ -4,10 +4,16 @@ model Product {
     description String?
     price   Float
     stock   Int
+    status  ProductStatus  @default(active)
     image_url   String[]
     size    Float[]
     color   String[]
-    user    User    @relation(fields: [userId], references: [id])
-    userId  String
+    user    User    @relation(fields: [user_id], references: [id])
+    user_id  String
     createdAt   DateTime    @default(now())
+}
+
+enum ProductStatus {
+    active
+    inactive
 }

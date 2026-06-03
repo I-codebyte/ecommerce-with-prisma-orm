@@ -1,0 +1,10 @@
+model Address{
+    id  String  @id @default(uuid())
+    user    User    @relation(fields: [user_id], references:[id])
+    user_id String
+    label   String?
+    street  String 
+    city    String
+    state   String
+    is_default  Boolean @default(false)
+}

@@ -6,7 +6,11 @@ const fetchAllProduct = async (req, res, next) => {
 	const products = await prisma.product.findMany();
 
 	try {
-		res.status(200).json({ status: "success", products });
+		res.status(200).json({
+			status: "success",
+			totalProducts: products.length,
+			products,
+		});
 	} catch (err) {
 		next(err);
 	}
@@ -57,11 +61,18 @@ const createProduct = async (req, res, next) => {
 
 //retrieve product by id
 const fetchProductById = async (req, res, next) => {
-	const id = req.param.id;
+	const id = req.params.id;
 
 	const product = await prisma.product.findUnique({ where: { id } });
 
 	try {
+		if (!product) {
+			return res.status(404).json({
+				status: "failed",
+				message: "Product not found!",
+			});
+		}
+
 		res.status(200).json({ status: "success", product });
 	} catch (err) {
 		next(err);
@@ -78,12 +89,11 @@ const updateProduct = async (req, res, next) => {
 
 	const product = await prisma.product.findUnique({ where: { id } });
 
-	if (userId !== product.id) {
-		throw new ApiError("Unauthorized", 403);
-	}
-
 	try {
 		if (product) {
+			if (userId !== product.userId) {
+				throw new ApiError("Unauthorized", 403);
+			}
 			await prisma.product.update({
 				where: { id },
 				data: {
@@ -97,11 +107,15 @@ const updateProduct = async (req, res, next) => {
 				},
 			});
 
-			res.status(200).json({ status: "success", product });
+			res.status(200).json({
+				status: "success",
+				message: "Product updated",
+			});
+			return;
 		}
 
 		res.status(404).json({
-			status: "fail",
+			status: "failed",
 			message: "Product not found!",
 		});
 	} catch (err) {
@@ -112,18 +126,25 @@ const updateProduct = async (req, res, next) => {
 // delete a product
 const deleteProduct = async (req, res, nex) => {
 	const id = req.params.id;
-
-	if (!id) {
-		throw new ApiError("invalid endpoint", 400);
-	}
-
-	const product = await prisma.product.findUnique({ where: { id } });
-
-	if (!product) {
-		throw new ApiError("product does not exist!", 404);
-	}
+	const userId = req.userId;
 
 	try {
+		if (!id) {
+			throw new ApiError("invalid endpoint", 400);
+		}
+
+		const product = await prisma.product.findUnique({
+			where: { id },
+		});
+
+		if (userId !== product.userId) {
+			throw new ApiError("Unautorized", 401);
+		}
+
+		if (!product) {
+			throw new ApiError("product does not exist!", 404);
+		}
+
 		await prisma.product.delete({ where: { id } });
 
 		res.status(200).json({
