@@ -1,18 +1,18 @@
 model Order {
     id  String  @id @default(uuid())
-    user    User    @relation(fields: [user_id], references: [id])
-    user_id  String
+    Payment Payment?
+    buyer    User    @relation(fields: [buyerId], references: [id])
+    buyerId  String
     orderItems  OrderItem[]
-    total_amount    Float
-    status  Status  @default(pending)
-    address_id  String[]
-    sub_total    Float
+    status  OrderStatus  @default(pending)
+    addressId   String
+    sub_total    Float  @default(0)
     shipping_fee    Float
-    total   Float
+    total_amount    Float   @default(0)
     createdAt   DateTime    @default(now())
 }
 
-enum Status {
+enum OrderStatus {
     pending
     on_transit
     canceled

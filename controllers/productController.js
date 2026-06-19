@@ -18,7 +18,7 @@ const fetchAllProduct = async (req, res, next) => {
 
 //create product
 const createProduct = async (req, res, next) => {
-	const { name, description, price, stock, image_url, size, color } =
+	const { name, description, price, stock, imageUrl, size, color } =
 		req.body;
 
 	const userId = req.userId;
@@ -35,7 +35,7 @@ const createProduct = async (req, res, next) => {
 		throw new ApiError("Description is required", 403);
 	}
 
-	if (!image_url) {
+	if (!imageUrl) {
 		throw new ApiError("Image is required", 403);
 	}
 
@@ -46,7 +46,7 @@ const createProduct = async (req, res, next) => {
 				description,
 				price,
 				stock,
-				image_url,
+				imageUrl,
 				size,
 				color,
 				userId,
@@ -74,6 +74,25 @@ const fetchProductById = async (req, res, next) => {
 		}
 
 		res.status(200).json({ status: "success", product });
+	} catch (err) {
+		next(err);
+	}
+};
+
+// fetch product created by a user
+const fetchProductOwnedByUser = async (req, res, next) => {
+	const userId = req.userId;
+
+	try {
+		const products = await prisma.product.findMany({
+			where: { userId },
+		});
+
+		res.status(200).json({
+			status: "success",
+			count: products.length,
+			products,
+		});
 	} catch (err) {
 		next(err);
 	}
@@ -162,4 +181,5 @@ export {
 	fetchProductById,
 	updateProduct,
 	deleteProduct,
+	fetchProductOwnedByUser,
 };

@@ -2,27 +2,30 @@ import { prisma } from "../prisma/prisma.client.js";
 import bcrypt from "bcrypt";
 import generateToken from "../utils/token.js";
 import ApiError from "../utils/apiError.js";
+import { modifier } from "../utils/helper.js";
 
 const salt = await bcrypt.genSalt(10);
 
 // register user
 const register = async (req, res, next) => {
-	let { email, password, username } = req.body;
+	let { firstName, lastName, email, password } = req.body;
 
 	const token = req.cookies.token;
 
 	// if user is logged in redirect to home
 	if (token) {
 		res.redirect("/api/v1/users/profile");
+		return;
 	}
 
-	if (!email || !password || !username) {
+	if (!email || !password || !firstName || !lastName) {
 		throw new ApiError("All inputs are required!", 403);
 	}
 
+	firstName = modifier(firstName);
+	lastName = modifier(lastName);
 	email = email.trim().toLowerCase();
 	password = password.trim();
-	username = username.trim().toLowerCase();
 
 	if (password.length < 8) {
 		throw new ApiError(
@@ -35,23 +38,23 @@ const register = async (req, res, next) => {
 		where: { email },
 	});
 
-	const existingUsername = await prisma.user.findUnique({
-		where: { username },
-	});
-
 	if (existingEmail) {
 		throw new ApiError("email has been used", 403);
-	}
-
-	if (existingUsername) {
-		throw new ApiError("username has been used", 403);
 	}
 
 	try {
 		const hashPassword = await bcrypt.hash(password, salt);
 
 		const user = await prisma.user.create({
-			data: { email, password: hashPassword, username },
+			data: {
+				firstName,
+				lastName,
+				email,
+				password: hashPassword,
+				cart: {
+					create: {},
+				},
+			},
 			omit: { password: true },
 		});
 
@@ -133,6 +136,7 @@ const fetchUser = async (req, res, next) => {
 		const user = await prisma.user.findUnique({
 			where: { id: userId },
 			omit: { password: true },
+			include: { address: true },
 		});
 
 		res.status(200).json(user);
@@ -143,24 +147,25 @@ const fetchUser = async (req, res, next) => {
 
 // update user
 const updateUser = async (req, res, next) => {
-	let { email, username, oldPassword, newPassword } = req.body;
+	let { firstName, lastName, email, oldPassword, newPassword } = req.body;
 
 	email = email.trim().toLowerCase();
 	username = username.trim().toLowerCase();
 
-	const userId = req.userId;
+	const userId = req.user.id;
 
 	try {
 		const user = await prisma.user.findUnique({
 			where: { id: userId },
 		});
 
-		if (email || username) {
+		if (email || firstName || lastName) {
 			await prisma.user.update({
 				where: { email: user.email },
 				data: {
-					email: email || undefined,
-					username: username || undefined,
+					firstName,
+					lastName,
+					email,
 				},
 			});
 		}
@@ -197,4 +202,33 @@ const updateUser = async (req, res, next) => {
 	}
 };
 
-export { register, login, logout, fetchUser, updateUser };
+const addAddress = async (req, res, next) => {
+	const { street, city, state, is_default } = req.body;
+
+	const userId = req.userId;
+
+	try {
+		if (!city || !street || !state) {
+			throw new ApiError(
+				"Please fill all required inputs",
+				400,
+			);
+		}
+
+		const address = await prisma.address.create({
+			data: {
+				userId,
+				street,
+				city,
+				state,
+				is_default,
+			},
+		});
+
+		res.status(201).json({ status: "success", address });
+	} catch (err) {
+		next(err);
+	}
+};
+
+export { register, login, logout, fetchUser, updateUser, addAddress };

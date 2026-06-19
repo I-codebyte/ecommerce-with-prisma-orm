@@ -17,7 +17,7 @@ const authentication = async (req, res, next) => {
 
 		const user = await prisma.user.findUnique({
 			where: { id: userId },
-			omit: { password: true },
+			omit: {password: true}
 		});
 
 		if (!user) {

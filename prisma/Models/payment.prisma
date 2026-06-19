@@ -1,0 +1,23 @@
+model Payment{
+    id  String @id  @default(uuid())
+    order   Order   @relation(fields:[orderId], references:[id])
+    orderId    String  @unique
+    gateway Gateway
+    amount  Float
+    currency    String
+    status  PayStatus
+    gateway_ref String
+}
+
+enum Gateway {
+    Stripe
+    Paypal
+    Paystack
+}
+
+enum PayStatus {
+    pending
+    success
+    failed
+    refunded
+}

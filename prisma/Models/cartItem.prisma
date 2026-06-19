@@ -1,0 +1,10 @@
+model CartItem {
+    id  String  @id @default(uuid())
+    cart    Cart    @relation(fields:[cartId], references:[id])
+    cartId  String
+    productId   String
+    quantity    Int @default(1)
+    size    Float?
+    color   String?
+    checkOut    Boolean @default(false)
+}

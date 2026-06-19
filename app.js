@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import userRouter from "./routes/userRoute.js";
 import productRouter from "./routes/productRoute.js";
 import orderRouter from "./routes/orderRoute.js";
+import cartRouter from "./routes/cartRoute.js";
 import { prisma } from "./prisma/prisma.client.js";
 
 const app = express();
@@ -20,6 +21,9 @@ app.use("/api/v1", productRouter);
 
 // order routes
 app.use("/api/v1", orderRouter);
+
+// cart routes
+app.use("/api/v1", cartRouter);
 
 const port = process.env.PORT || 5000;
 
@@ -39,11 +43,11 @@ app.listen(port, () => console.log(`server is running on port: ${port}`));
 
 // graceful shutdown
 process.on("SIGINT", async () => {
-	console.log(`received SIGINT`);
+	console.log(`server shutdown, SIGINT`);
 	process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
-	console.log(`received SIGTERM`);
+	console.log(`server shutdown, SIGTERM`);
 	process.exit(0);
 });

@@ -1,5 +1,6 @@
 import express from "express";
 import {
+	addAddress,
 	fetchUser,
 	login,
 	logout,
@@ -15,5 +16,8 @@ router.post("/auth/login", login);
 router.post("/auth/logout", authentication, logout);
 router.get("/users/profile", authentication, fetchUser);
 router.put("/users/profile", authentication, updateUser);
+
+// address routes
+router.post("/users/address", authentication, addAddress)
 
 export default router;
