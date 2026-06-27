@@ -175,6 +175,77 @@ const deleteProduct = async (req, res, nex) => {
 	}
 };
 
+// create category
+const createCat = async (req, res, next) => {
+	try {
+		const { name } = req.body;
+
+		const existingCat = await prisma.category.findUnique({
+			where: { name },
+		});
+
+		if (existingCat) {
+			res.status(409).json({
+				status: "success",
+				message: `A category ${name} already exist!`,
+			});
+			return;
+		}
+
+		const category = await prisma.category.create({
+			data: { name },
+		});
+
+		res.status(201).json({ status: "success", category });
+	} catch (err) {
+		next(err);
+	}
+};
+
+// retrieve all category
+const allCat = async (req, res, next) => {
+	try {
+		const categories = await prisma.category.findMany();
+
+		res.status(200).json({
+			status: "success",
+			count: categories.length,
+			categories,
+		});
+	} catch (err) {
+		next(err);
+	}
+};
+
+// delete category
+const deleteCat = async (req, res, next) => {
+	try {
+		const { category } = req.query;
+
+		const searchCategory = await prisma.category.findUnique({
+			where: { name: category },
+		});
+
+		if (!searchCategory) {
+			res.status(404).json({
+				status: "success",
+				message: `Category not found!`,
+			});
+		}
+
+		await prisma.category.delete({
+			where: { name: category },
+		});
+
+		res.status(200).json({
+			status: "success",
+			message: `${category} deleted!`,
+		});
+	} catch (err) {
+		next(err);
+	}
+};
+
 export {
 	fetchAllProduct,
 	createProduct,
@@ -182,4 +253,7 @@ export {
 	updateProduct,
 	deleteProduct,
 	fetchProductOwnedByUser,
+	createCat,
+	deleteCat,
+	allCat,
 };

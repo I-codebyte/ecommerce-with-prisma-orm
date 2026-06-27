@@ -19,7 +19,7 @@ const getCart = async (req, res, next) => {
 
 //add to cart
 const addToCart = async (req, res, next) => {
-	const productId = req.params.productId;
+	const { productId } = req.query;
 
 	try {
 		const product = await prisma.product.findUnique({
@@ -71,7 +71,7 @@ const addToCart = async (req, res, next) => {
 const removeFromCart = async (req, res, next) => {
 	try {
 		const userId = req.userId;
-		const productId = req.params.productId;
+		const { productId } = req.query;
 
 		const cart = await prisma.cart.findUnique({
 			where: { userId },
@@ -86,7 +86,7 @@ const removeFromCart = async (req, res, next) => {
 
 				res.status(200).json({
 					status: "success",
-					message: "Item has been deleted",
+					message: "Item has been removed from cart.",
 				});
 				return;
 			}

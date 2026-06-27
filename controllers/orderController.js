@@ -64,8 +64,25 @@ const createOrder = async (req, res, next) => {
 			});
 
 			checkOutItems.forEach((item) => {
-				for (let pID of products) {
-					if (pID.id === item.productId) {
+				for (const product of products) {
+					if (product.id === item.productId) {
+						if (!product.stock) {
+							throw new ApiError(
+								"Product out of Stock!",
+								404,
+							);
+						}
+
+						if (
+							product.stock <
+							item.quantity
+						) {
+							throw new ApiError(
+								`Remaining stock for ${product.name} is ${product.stock}`,
+								400,
+							);
+						}
+
 						sub_total =
 							sub_total +
 							pID.price *
