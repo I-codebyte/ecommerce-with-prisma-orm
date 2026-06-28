@@ -4,7 +4,7 @@ model Product {
     description String?
     price   Float
     stock   Int
-    category    String[]
+    categories    String[]
     status  ProductStatus  @default(active)
     imageUrl   String[]
     size    Float[]

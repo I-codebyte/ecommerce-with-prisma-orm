@@ -1,7 +1,7 @@
 import { prisma } from "../prisma/prisma.client.js";
 import ApiError from "../utils/apiError.js";
 
-//retrieve all posts
+//retrieve all products
 const fetchAllProduct = async (req, res, next) => {
 	try {
 		const page = parseInt(req.query.page) || 1;
@@ -15,11 +15,11 @@ const fetchAllProduct = async (req, res, next) => {
 			take: limit,
 		});
 
+		const productCount = await prisma.product.count();
+
 		res.status(200).json({
 			status: "success",
-			totalPages: Math.ceil(
-				(await prisma.product.count()) / limit,
-			),
+			totalPages: Math.ceil(productCount / limit),
 			currentPage: page,
 			previousPage:
 				startIndex > 0
@@ -30,14 +30,68 @@ const fetchAllProduct = async (req, res, next) => {
 						}
 					: null,
 			nextPage:
-				endIndex < (await prisma.product.count())
+				endIndex < productCount
 					? {
 							page: page + 1,
 							limit,
 							url: `http://localhost:4600/api/v1/products?page=${page + 1}&limit=${limit}`,
 						}
 					: null,
-			totalProducts: await prisma.product.count(),
+			totalProducts: productCount,
+			products,
+		});
+	} catch (err) {
+		next(err);
+	}
+};
+
+// retrieve products by category
+const fetchProductsByCategory = async (req, res, next) => {
+	try {
+		const category = req.query.category;
+		const page = parseInt(req.query.page) || 1;
+		const limit = parseInt(req.query.limit) || 3;
+
+		const startIndex = (page - 1) * limit;
+		const endIndex = page * limit;
+
+		const products = await prisma.product.findMany({
+			where: {
+				categories: {
+					has: category,
+				},
+			},
+			skip: startIndex,
+			take: limit,
+		});
+
+		const productCount = await prisma.product.count({
+			where: {
+				categories: { has: category },
+			},
+		});
+
+		res.status(200).json({
+			status: "success",
+			totalPages: Math.ceil(productCount / limit),
+			currentPage: page,
+			previousPage:
+				startIndex > 0
+					? {
+							page: page - 1,
+							limit,
+							url: `http://localhost:4600/api/v1/products?page=${page - 1}&limit=${limit}`,
+						}
+					: null,
+			nextPage:
+				endIndex < productCount
+					? {
+							page: page + 1,
+							limit,
+							url: `http://localhost:4600/api/v1/products?page=${page + 1}&limit=${limit}`,
+						}
+					: null,
+			totalProducts: productCount,
 			products,
 		});
 	} catch (err) {
@@ -47,8 +101,16 @@ const fetchAllProduct = async (req, res, next) => {
 
 //create product
 const createProduct = async (req, res, next) => {
-	const { name, description, price, stock, imageUrl, size, color } =
-		req.body;
+	const {
+		name,
+		description,
+		price,
+		stock,
+		imageUrl,
+		size,
+		color,
+		categories,
+	} = req.body;
 
 	const userId = req.userId;
 
@@ -67,6 +129,9 @@ const createProduct = async (req, res, next) => {
 	if (!imageUrl) {
 		throw new ApiError("Image is required", 403);
 	}
+	if (!categories) {
+		throw new ApiError("Category is required", 403);
+	}
 
 	try {
 		const product = await prisma.product.create({
@@ -79,6 +144,7 @@ const createProduct = async (req, res, next) => {
 				size,
 				color,
 				userId,
+				categories,
 			},
 		});
 
@@ -275,6 +341,21 @@ const deleteCat = async (req, res, next) => {
 	}
 };
 
+// create many. // this is used for test purpose
+// const createMany = async (req, res, next) => {
+// 	try {
+// 		const data = req.body;
+
+// 		const createData = await prisma.product.createMany({
+// 			data: data,
+// 		});
+
+// 		res.status(200).json({ status: "success", data: createData });
+// 	} catch (err) {
+// 		next(err);
+// 	}
+// };
+
 export {
 	fetchAllProduct,
 	createProduct,
@@ -282,7 +363,9 @@ export {
 	updateProduct,
 	deleteProduct,
 	fetchProductOwnedByUser,
+	fetchProductsByCategory,
 	createCat,
 	deleteCat,
 	allCat,
+	// createMany,
 };
