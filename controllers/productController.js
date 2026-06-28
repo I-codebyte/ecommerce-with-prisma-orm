@@ -4,8 +4,8 @@ import ApiError from "../utils/apiError.js";
 //retrieve all posts
 const fetchAllProduct = async (req, res, next) => {
 	try {
-		const page = parseInt(req.query.page);
-		const limit = parseInt(req.query.limit);
+		const page = parseInt(req.query.page) || 1;
+		const limit = parseInt(req.query.limit) || 3;
 
 		const startIndex = (page - 1) * limit;
 		const endIndex = page * limit;
@@ -23,11 +23,19 @@ const fetchAllProduct = async (req, res, next) => {
 			currentPage: page,
 			previousPage:
 				startIndex > 0
-					? { page: page - 1, limit }
+					? {
+							page: page - 1,
+							limit,
+							url: `http://localhost:4600/api/v1/products?page=${page - 1}&limit=${limit}`,
+						}
 					: null,
 			nextPage:
 				endIndex < (await prisma.product.count())
-					? { page: page + 1, limit }
+					? {
+							page: page + 1,
+							limit,
+							url: `http://localhost:4600/api/v1/products?page=${page + 1}&limit=${limit}`,
+						}
 					: null,
 			totalProducts: await prisma.product.count(),
 			products,
