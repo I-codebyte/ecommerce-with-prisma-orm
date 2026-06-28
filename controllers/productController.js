@@ -3,12 +3,33 @@ import ApiError from "../utils/apiError.js";
 
 //retrieve all posts
 const fetchAllProduct = async (req, res, next) => {
-	const products = await prisma.product.findMany();
-
 	try {
+		const page = parseInt(req.query.page);
+		const limit = parseInt(req.query.limit);
+
+		const startIndex = (page - 1) * limit;
+		const endIndex = page * limit;
+
+		const products = await prisma.product.findMany({
+			skip: startIndex,
+			take: limit,
+		});
+
 		res.status(200).json({
 			status: "success",
-			totalProducts: products.length,
+			totalPages: Math.ceil(
+				(await prisma.product.count()) / limit,
+			),
+			currentPage: page,
+			previousPage:
+				startIndex > 0
+					? { page: page - 1, limit }
+					: null,
+			nextPage:
+				endIndex < (await prisma.product.count())
+					? { page: page + 1, limit }
+					: null,
+			totalProducts: await prisma.product.count(),
 			products,
 		});
 	} catch (err) {
