@@ -14,14 +14,14 @@ const register = async (req, res, next) => {
 	const token = req.cookies.token;
 
 	// gmail validation string
-	const mailV = /^\w+@\w+\.\w+$/;
+	const mailV = /^[\w.]+@\w+\.\w+$/;
 
 	try {
 		// if user is logged in redirect to home
-		if (token) {
-			res.redirect("/api/v1/users/profile");
-			return;
-		}
+		// if (token) {
+		// 	res.redirect("/api/v1/users/profile");
+		// 	return;
+		// }
 
 		if (!email || !password || !firstName || !lastName) {
 			throw new ApiError("All inputs are required!", 403);
@@ -41,7 +41,7 @@ const register = async (req, res, next) => {
 
 		const passErrMsg = passValidator(password);
 
-		if (passErrMsg.length === 0) {
+		if (passErrMsg.length !== 0) {
 			res.status(403).json({
 				message: passErrMsg,
 			});
@@ -274,7 +274,7 @@ const forgetPass = async (req, res, next) => {
 			from: process.env.MY_EMAIL,
 			to: email,
 			subject: "Reset Your Password",
-			html: `<p>Hi ${user.firstName + " " + user.lastName},<br>We received a request to reset the password to your account.<br><br>To create a new password, click the link below:<br><br>http://localhost:4600/api/v1/reset-password/?token=${genTokenPass(email)}<br><br>This link will expire in 15 minutes for your security.<br><br>If you did not request a password reset, you can ignore this email.<br><br>Thanks</p>`,
+			html: `<p>Hi ${user.firstName + " " + user.lastName},<br><br>We received a request to reset the password to your account.<br><br>To create a new password, click the link below:<br><br>http://localhost:4600/api/v1/reset-password/?token=${genTokenPass(email)}<br><br>This link will expire in 15 minutes for your security.<br><br>If you did not request a password reset, you can ignore this email.<br><br>Thanks</p>`,
 		});
 
 		res.status(200).json({
