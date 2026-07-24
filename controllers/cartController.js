@@ -66,8 +66,8 @@ const addToCart = async (req, res, next) => {
 	}
 };
 
-// remove from cart
 
+// remove from cart
 const removeFromCart = async (req, res, next) => {
 	try {
 		const userId = req.userId;

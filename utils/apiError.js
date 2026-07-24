@@ -1,3 +1,5 @@
+// use to log custom errors
+
 class ApiError extends Error {
 	constructor(message, code) {
 		super(message);
